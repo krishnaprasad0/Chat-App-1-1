@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
     
+    # AWS S3
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_REGION: str = "ap-south-2"
+    S3_BUCKET_NAME: str = ""
+    
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
 settings = Settings()

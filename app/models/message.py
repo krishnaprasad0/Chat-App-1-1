@@ -9,6 +9,7 @@ class MessageType(str, enum.Enum):
     TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"
+    VOICE = "voice"
 
 class MessageStatus(str, enum.Enum):
     SENT = "sent"
@@ -24,5 +25,6 @@ class Message(Base):
     encrypted_content = Column(Text, nullable=False)
     message_type = Column(String, default=MessageType.TEXT)
     media_url = Column(String, nullable=True)
+    duration = Column(String, nullable=True) # Duration for voice messages (e.g. "0:15")
     status = Column(String, default=MessageStatus.SENT)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

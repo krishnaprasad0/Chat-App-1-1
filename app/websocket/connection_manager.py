@@ -1,9 +1,13 @@
 from fastapi import WebSocket
-from typing import Dict, List
+from typing import Dict, List, Optional
 import redis.asyncio as redis
 from app.core.config import settings
+from app.services.notification_service import notification_service
 import json
 import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.models.user import User
 
 class ConnectionManager:
     def __init__(self):
@@ -14,34 +18,54 @@ class ConnectionManager:
 
     async def connect(self, user_id: str, websocket: WebSocket):
         self.active_connections[user_id] = websocket
+        # Track globally online users
+        await self.redis.sadd("online_users", user_id)
 
-    def disconnect(self, user_id: str):
+    async def disconnect(self, user_id: str):
         if user_id in self.active_connections:
             del self.active_connections[user_id]
+        # Remove from globally online users
+        await self.redis.srem("online_users", user_id)
 
-    async def send_personal_message(self, message: dict, user_id: str):
+    async def send_personal_message(self, message: dict, user_id: str, db: Optional[AsyncSession] = None):
+        # 1. Check if user is connected to THIS instance
         if user_id in self.active_connections:
             await self.active_connections[user_id].send_json(message)
-        else:
-            # If not on this instance, publish to Redis so other instances can handle it
+            return
+
+        # 2. Check if user is connected to ANY instance
+        is_online = await self.redis.sismember("online_users", user_id)
+        if is_online:
+            # Relay to the instance where the user is connected
             await self.redis.publish(f"user_channel:{user_id}", json.dumps(message))
+        else:
+            # 3. User is offline - Send Push Notification
+            if db:
+                await self._trigger_push_notification(message, user_id, db)
 
-    async def broadcast(self, message: dict):
-        # Local broadcast
-        for connection in self.active_connections.values():
-            await connection.send_json(message)
-        # Global broadcast via Redis
-        await self.redis.publish("global_chat", json.dumps(message))
-
-    async def subscribe_to_user_events(self):
-        """
-        Background task to listen for messages from Redis and push to local WebSockets.
-        """
-        self.pubsub = self.redis.pubsub()
-        # In a real scaled app, we'd subscribe to user_channel:{instance_id} or similar
-        # For simplicity, we'll listen to all user channels or use a pattern
-        # Here we just show the logic for listening to user-specific messages
-        pass 
+    async def _trigger_push_notification(self, message: dict, user_id: str, db: AsyncSession):
+        try:
+            # Get receiver's FCM token
+            from uuid import UUID
+            uid = UUID(user_id) if isinstance(user_id, str) else user_id
+            result = await db.execute(select(User).where(User.id == uid))
+            user = result.scalar_one_or_none()
+            
+            if user and user.fcm_token:
+                # Get sender info (if available in message)
+                sender_name = "New Message"
+                content = message.get("encrypted_content", "You have a new message")
+                
+                # In a real app, you might want to fetch the sender's name from DB too
+                # For now, we'll just send the message content
+                await notification_service.send_push_notification(
+                    token=user.fcm_token,
+                    title=sender_name,
+                    body=content,
+                    data={"sender_id": str(message.get("sender_id", ""))}
+                )
+        except Exception as e:
+            print(f"Error in _trigger_push_notification: {e}")
 
     async def listen_redis(self):
         pubsub = self.redis.pubsub()

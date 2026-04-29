@@ -12,6 +12,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     is_online: Optional[bool] = None
     last_seen: Optional[datetime] = None
+    fcm_token: Optional[str] = None
 
 class UserResponse(UserBase):
     id: UUID

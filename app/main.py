@@ -13,6 +13,7 @@ import asyncio
 import json
 from app.db.session import engine
 from app.admin import setup_admin
+from uuid import UUID
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -100,8 +101,16 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                 if message_data["type"] == "chat_message":
                     await ChatManager.handle_message(db, user_id, message_data)
                 
+                elif message_data["type"] == "status_update":
+                    # Handle delivered/seen status
+                    await ChatManager.update_status(
+                        db, 
+                        UUID(message_data["message_id"]), 
+                        message_data["status"]
+                    )
+                
                 elif message_data["type"] in ["offer", "answer", "ice"]:
-                    await SignalingManager.relay_signal(user_id, message_data)
+                    await SignalingManager.relay_signal(user_id, message_data, db=db)
                 
                 elif message_data["type"] == "typing":
                     # Broadcast typing indicator to receiver
@@ -113,7 +122,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                     }, receiver_id)
 
     except WebSocketDisconnect:
-        manager.disconnect(user_id)
+        await manager.disconnect(user_id)
         await presence_manager.set_offline(user_id)
     except Exception as e:
         print(f"WebSocket Error: {e}")

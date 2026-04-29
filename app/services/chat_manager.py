@@ -13,16 +13,20 @@ class ChatManager:
         # data format: {receiver_id, encrypted_content, message_type, media_url}
         receiver_id = UUID(data["receiver_id"])
         
-        # 1. Store in DB (with server-side encryption for data at rest)
+        # 1. Store in DB
         original_content = data["encrypted_content"]
-        db_content = encryptor.encrypt(original_content)
+        # Only encrypt the content if it's a text message (E2EE)
+        # For media, the content is the S3 URL which we store as is
+        is_text = data.get("message_type", "text") == "text"
+        db_content = encryptor.encrypt(original_content) if is_text else original_content
         
         db_message = Message(
             sender_id=sender_id,
             receiver_id=receiver_id,
             encrypted_content=db_content,
             message_type=data.get("message_type", "text"),
-            media_url=data.get("media_url")
+            media_url=data.get("media_url"),
+            duration=data.get("duration")
         )
         db.add(db_message)
         await db.commit()
@@ -39,15 +43,38 @@ class ChatManager:
             "encrypted_content": original_content,
             "message_type": db_message.message_type,
             "media_url": db_message.media_url,
+            "duration": db_message.duration,
             "created_at": db_message.created_at.isoformat(),
             "status": db_message.status
         }
         
-        await manager.send_personal_message(message_payload, str(receiver_id))
+        await manager.send_personal_message(message_payload, str(receiver_id), db=db)
         
         return db_message
 
     @staticmethod
     async def update_status(db: AsyncSession, message_id: UUID, status: str):
-        # Update in DB and notify sender
-        pass 
+        # 1. Update status in DB
+        from sqlalchemy import select
+        result = await db.execute(select(Message).where(Message.id == message_id))
+        db_message = result.scalar_one_or_none()
+        
+        if not db_message:
+            return
+
+        # Don't downgrade status (e.g., if already 'seen', don't set to 'delivered')
+        status_priority = {"sent": 1, "delivered": 2, "seen": 3}
+        if status_priority.get(status, 0) <= status_priority.get(db_message.status, 0):
+            return
+
+        db_message.status = status
+        await db.commit()
+
+        # 2. Notify the original sender
+        status_update = {
+            "type": "message_status_update",
+            "message_id": str(message_id),
+            "status": status,
+            "receiver_id": str(db_message.receiver_id)
+        }
+        await manager.send_personal_message(status_update, str(db_message.sender_id), db=db)

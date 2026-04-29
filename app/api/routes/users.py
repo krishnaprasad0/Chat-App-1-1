@@ -3,11 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, PaginatedUserResponse, UserUpdate
 from app.core.dependencies import get_current_user
 from uuid import UUID
-
-from app.schemas.user import UserResponse, PaginatedUserResponse
 from sqlalchemy import func
 
 router = APIRouter()
@@ -70,4 +68,19 @@ async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db), current_us
         status=True,
         message="User retrieved",
         data=user
+    )
+
+@router.put("/fcm-token", response_model=APIResponse[UserResponse])
+async def update_fcm_token(
+    token_data: UserUpdate, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    current_user.fcm_token = token_data.fcm_token
+    await db.commit()
+    await db.refresh(current_user)
+    return APIResponse(
+        status=True,
+        message="FCM token updated",
+        data=current_user
     )

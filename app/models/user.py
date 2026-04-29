@@ -13,3 +13,4 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_seen = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     is_online = Column(Boolean, default=False)
+    fcm_token = Column(String, nullable=True)
