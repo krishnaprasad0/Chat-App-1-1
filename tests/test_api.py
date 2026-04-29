@@ -81,3 +81,15 @@ async def test_all_api_features(client):
     user_json = user_response.json()
     assert user_json["status"] is True
     assert user_json["data"]["username"] == u2_name
+
+    # 6. User List with Pagination
+    users_resp = await client.get("/users/", params={"page": 1, "size": 5}, headers={
+        "Authorization": f"Bearer {new_access_token}"
+    })
+    assert users_resp.status_code == 200
+    users_json = users_resp.json()
+    assert users_json["status"] is True
+    assert "items" in users_json["data"]
+    assert users_json["data"]["page"] == 1
+    assert users_json["data"]["size"] == 5
+    assert len(users_json["data"]["items"]) >= 2  # We registered at least 2 users

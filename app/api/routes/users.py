@@ -7,7 +7,45 @@ from app.schemas.user import UserResponse
 from app.core.dependencies import get_current_user
 from uuid import UUID
 
+from app.schemas.user import UserResponse, PaginatedUserResponse
+from sqlalchemy import func
+
 router = APIRouter()
+
+from app.schemas.common import APIResponse
+
+@router.get("/", response_model=APIResponse[PaginatedUserResponse])
+async def get_users(
+    page: int = 1,
+    size: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    offset = (page - 1) * size
+    
+    # Get total count
+    total_result = await db.execute(select(func.count(User.id)))
+    total = total_result.scalar()
+    
+    # Get items
+    result = await db.execute(
+        select(User)
+        .order_by(User.username.asc())
+        .offset(offset)
+        .limit(size)
+    )
+    users = result.scalars().all()
+    
+    return APIResponse(
+        status=True,
+        message="Users retrieved",
+        data=PaginatedUserResponse(
+            items=users,
+            total=total,
+            page=page,
+            size=size
+        )
+    )
 
 from app.schemas.common import APIResponse
 

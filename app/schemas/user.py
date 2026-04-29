@@ -20,3 +20,11 @@ class UserResponse(UserBase):
     is_online: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+from typing import List
+
+class PaginatedUserResponse(BaseModel):
+    items: List[UserResponse]
+    total: int
+    page: int
+    size: int
