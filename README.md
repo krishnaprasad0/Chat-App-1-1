@@ -69,6 +69,59 @@ A production-ready, secure 1-to-1 communication backend built with FastAPI, Post
    uvicorn app.main:app --reload
    ```
 
+## 🔌 WebSocket & Real-time Messaging
+
+The backend uses WebSockets for real-time chat, presence, and signaling.
+
+### Connection URL
+`ws://<HOST>/ws/chat/<TOKEN>`
+
+- **Local (Web/iOS)**: `ws://localhost:8000/ws/chat/<token>`
+- **Android Emulator**: `ws://10.0.2.2:8000/ws/chat/<token>`
+- **Production/ngrok**: `wss://<your-ngrok-url>/ws/chat/<token>`
+
+### Message Types
+All WebSocket communication uses JSON.
+
+**1. Send Chat Message:**
+```json
+{
+  "type": "chat_message",
+  "receiver_id": "UUID",
+  "encrypted_content": "Base64_E2EE_Blob",
+  "message_type": "text"
+}
+```
+
+**2. WebRTC Signaling:**
+```json
+{
+  "type": "offer", // or "answer", "ice"
+  "receiver_id": "UUID",
+  "data": { ...signal_payload... }
+}
+```
+
+**3. Typing Indicator:**
+```json
+{
+  "type": "typing",
+  "receiver_id": "UUID",
+  "is_typing": true
+}
+```
+
+## 📱 Flutter Integration Steps
+
+1. **Update WebSocket URL**:
+   Ensure your connection URL matches the `/ws/chat/<token>` pattern.
+
+2. **Listen for Events**:
+   Handle incoming events like `new_message` and `typing` in your stream listener.
+
+3. **Handle Disconnection**:
+   Implement exponential backoff for reconnections to ensure reliability.
+
 ## 📖 API Documentation
 
 - **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
