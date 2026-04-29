@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureChat Dual Test Client</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --border: #334155;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            padding: 1rem;
+            background: #1e293b;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 1px;
+            background: var(--border);
+        }
+        .chat-panel {
+            flex: 1;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .chat-window {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            background: #020617;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .message {
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+        .sent { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .received { background: #334155; color: white; align-self: flex-start; border-bottom-left-radius: 2px; }
+        
+        .input-area { display: flex; gap: 8px; }
+        input {
+            flex: 1;
+            padding: 10px;
+            background: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: white;
+        }
+        button {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .status { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+        .online { background: #065f46; color: #34d399; }
+        .offline { background: #7f1d1d; color: #f87171; }
+        
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>SecureChat Dual-User Test Bench</h1>
+    <p style="font-size: 0.8rem; opacity: 0.7">Automated testing for aisu & itsmekp</p>
+</header>
+
+<div id="overlay">
+    <button onclick="startTest()" style="font-size: 1.5rem; padding: 20px 40px;">🚀 Start Testing</button>
+</div>
+
+<div class="main-container">
+    <!-- User 1: aisu -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <div><b>User 1: aisu</b></div>
+            <div id="status-1" class="status offline">Disconnected</div>
+        </div>
+        <div id="window-1" class="chat-window"></div>
+        <div class="input-area">
+            <input type="text" id="input-1" placeholder="Message to itsmekp...">
+            <button onclick="send(1)">Send</button>
+        </div>
+    </div>
+
+    <!-- User 2: itsmekp -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <div><b>User 2: itsmekp</b></div>
+            <div id="status-2" class="status offline">Disconnected</div>
+        </div>
+        <div id="window-2" class="chat-window"></div>
+        <div class="input-area">
+            <input type="text" id="input-2" placeholder="Message to aisu...">
+            <button onclick="send(2)">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CONFIG = {
+        API_BASE: 'https://21ad-2406-8800-9015-4eee-fcc8-9375-6ea-aedc.ngrok-free.app',
+        WS_BASE: 'wss://21ad-2406-8800-9015-4eee-fcc8-9375-6ea-aedc.ngrok-free.app',
+        user1: { name: 'aisu', pass: 'Itsmeaisu@123', id: '7389656b-4462-4e5b-bc7d-6c733c3480f9', ws: null, token: '' },
+        user2: { name: 'itsmekp', pass: 'Iamkp@123', id: '94081e15-ea43-4bd9-9ab0-5b41dd067158', ws: null, token: '' }
+    };
+
+    async function startTest() {
+        document.getElementById('overlay').style.display = 'none';
+        await setupUser(1, CONFIG.user1);
+        await setupUser(2, CONFIG.user2);
+    }
+
+    async function setupUser(num, user) {
+        try {
+            // Login
+            const res = await fetch(`${CONFIG.API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.name, password: user.pass })
+            });
+            const json = await res.json();
+            if (!json.status) throw new Error(json.message);
+            
+            user.token = json.data.access_token;
+            
+            // Connect WS
+            user.ws = new WebSocket(`${CONFIG.WS_BASE}/ws/chat/${user.token}`);
+            
+            user.ws.onopen = () => {
+                const s = document.getElementById(`status-${num}`);
+                s.innerText = 'Connected';
+                s.className = 'status online';
+            };
+            
+            user.ws.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'new_message') {
+                    addMsg(num, data.encrypted_content, 'received');
+                }
+            };
+        } catch (e) {
+            alert(`Error setting up ${user.name}: ${e.message}`);
+        }
+    }
+
+    function send(num) {
+        const input = document.getElementById(`input-${num}`);
+        const content = input.value;
+        if (!content) return;
+
+        const sender = num === 1 ? CONFIG.user1 : CONFIG.user2;
+        const receiver = num === 1 ? CONFIG.user2 : CONFIG.user1;
+
+        const payload = {
+            type: 'chat_message',
+            receiver_id: receiver.id,
+            encrypted_content: content,
+            message_type: 'text'
+        };
+
+        sender.ws.send(JSON.stringify(payload));
+        addMsg(num, content, 'sent');
+        input.value = '';
+    }
+
+    function addMsg(num, text, type) {
+        const win = document.getElementById(`window-${num}`);
+        const div = document.createElement('div');
+        div.className = `message ${type}`;
+        div.innerText = text;
+        win.appendChild(div);
+        win.scrollTop = win.scrollHeight;
+    }
+
+    // Enter key support
+    document.getElementById('input-1').onkeyup = (e) => e.key === 'Enter' && send(1);
+    document.getElementById('input-2').onkeyup = (e) => e.key === 'Enter' && send(2);
+</script>
+</body>
+</html>

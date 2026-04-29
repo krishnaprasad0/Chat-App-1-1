@@ -20,7 +20,7 @@ setup_admin(app, engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS] if settings.BACKEND_CORS_ORIGINS else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,16 +69,23 @@ async def root():
 
 @app.websocket("/ws/chat/{token}")
 async def websocket_endpoint(websocket: WebSocket, token: str):
+    print(f"DEBUG: WebSocket connection attempt received for token: {token[:15]}...")
+    await websocket.accept()
+    
     # 1. Authenticate
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id = payload.get("sub")
         if not user_id:
+            print("DEBUG: WebSocket authentication failed: No user_id in payload")
             await websocket.close(code=4001)
             return
-    except JWTError:
+    except JWTError as e:
+        print(f"DEBUG: WebSocket authentication failed: {str(e)}")
         await websocket.close(code=4001)
         return
+
+    print(f"DEBUG: WebSocket authenticated successfully for user: {user_id}")
 
     # 2. Connect
     await manager.connect(user_id, websocket)

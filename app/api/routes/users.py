@@ -23,13 +23,16 @@ async def get_users(
 ):
     offset = (page - 1) * size
     
-    # Get total count
-    total_result = await db.execute(select(func.count(User.id)))
+    # Get total count (excluding current user)
+    total_result = await db.execute(
+        select(func.count(User.id)).where(User.id != current_user.id)
+    )
     total = total_result.scalar()
     
-    # Get items
+    # Get items (excluding current user)
     result = await db.execute(
         select(User)
+        .where(User.id != current_user.id)
         .order_by(User.username.asc())
         .offset(offset)
         .limit(size)
