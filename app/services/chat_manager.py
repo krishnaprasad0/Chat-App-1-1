@@ -15,10 +15,8 @@ class ChatManager:
         
         # 1. Store in DB
         original_content = data["encrypted_content"]
-        # Only encrypt the content if it's a text message (E2EE)
-        # For media, the content is the S3 URL which we store as is
-        is_text = data.get("message_type", "text") == "text"
-        db_content = encryptor.encrypt(original_content) if is_text else original_content
+        # Encrypt ALL content (text, media URLs, etc.) for maximum privacy
+        db_content = encryptor.encrypt(original_content)
         
         db_message = Message(
             sender_id=sender_id,

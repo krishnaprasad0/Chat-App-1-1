@@ -35,10 +35,9 @@ async def get_chat_history(
     result = await db.execute(query)
     messages = result.scalars().all()
     
-    # Decrypt text messages for the client (media URLs should NOT be decrypted)
+    # Decrypt all messages for the client (handles legacy plain text gracefully via fallback)
     for msg in messages:
-        if msg.message_type == "text":
-            msg.encrypted_content = encryptor.decrypt(msg.encrypted_content)
+        msg.encrypted_content = encryptor.decrypt(msg.encrypted_content)
         
     return APIResponse(
         status=True,
