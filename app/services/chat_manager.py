@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.message import Message, MessageStatus
 from app.websocket.connection_manager import manager
 from app.services.presence_manager import presence_manager
+from app.models.friendship import Friendship, FriendshipStatus
+from sqlalchemy import select, or_, and_
 from uuid import UUID
 import json
 
@@ -13,6 +15,22 @@ class ChatManager:
         # data format: {receiver_id, encrypted_content, message_type, media_url}
         receiver_id = UUID(data["receiver_id"])
         
+        # 0. Check Friendship Status (E2E Privacy & Policy)
+        friend_query = select(Friendship).where(
+            and_(
+                or_(
+                    and_(Friendship.user_id == sender_id, Friendship.friend_id == receiver_id),
+                    and_(Friendship.user_id == receiver_id, Friendship.friend_id == sender_id)
+                ),
+                Friendship.status == FriendshipStatus.ACCEPTED
+            )
+        )
+        friend_result = await db.execute(friend_query)
+        if not friend_result.scalar_one_or_none():
+            # Not friends, don't allow message
+            print(f"DEBUG: Blocking message from {sender_id} to {receiver_id} - NOT FRIENDS")
+            return None
+
         # 1. Store in DB
         original_content = data["encrypted_content"]
         # Encrypt ALL content (text, media URLs, etc.) for maximum privacy

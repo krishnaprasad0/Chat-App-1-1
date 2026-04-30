@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.routes import auth, users, messages
+from app.api.routes import auth, users, messages, friends
 from app.websocket.connection_manager import manager
 from app.services.presence_manager import presence_manager
 from app.services.chat_manager import ChatManager
@@ -30,6 +30,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(messages.router, prefix="/messages", tags=["messages"])
+app.include_router(friends.router, prefix="/friends", tags=["friends"])
 
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
