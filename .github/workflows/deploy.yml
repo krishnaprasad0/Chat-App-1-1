@@ -1,0 +1,41 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Execute Deployment Script via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # 1. Navigate to project
+            cd ~/Chat-App-1-1
+            
+            # 2. Pull latest changes
+            git pull origin master
+            
+            # 3. Update dependencies
+            source .venv/bin/activate
+            pip install -r requirements.txt
+            
+            # 4. Run migrations
+            alembic upgrade head
+            
+            # 5. Restart application
+            sudo systemctl restart chat_app
+            
+            # 6. Optional: Restart Nginx
+            sudo systemctl restart nginx
+            
+            echo "✅ Deployment successful!"
