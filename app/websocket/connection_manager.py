@@ -8,6 +8,9 @@ import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.user import User
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ConnectionManager:
     def __init__(self):
@@ -40,32 +43,56 @@ class ConnectionManager:
             await self.redis.publish(f"user_channel:{user_id}", json.dumps(message))
         else:
             # 3. User is offline - Send Push Notification
+            logger.info(f"User {user_id} is offline. Triggering push notification fallback.")
             if db:
                 await self._trigger_push_notification(message, user_id, db)
+            else:
+                logger.warning(f"Cannot send push notification for {user_id}: DB session not provided.")
 
     async def _trigger_push_notification(self, message: dict, user_id: str, db: AsyncSession):
         try:
-            # Get receiver's FCM token
+            # Get receiver info
             from uuid import UUID
             uid = UUID(user_id) if isinstance(user_id, str) else user_id
             result = await db.execute(select(User).where(User.id == uid))
-            user = result.scalar_one_or_none()
+            receiver = result.scalar_one_or_none()
             
-            if user and user.fcm_token:
-                # Get sender info (if available in message)
+            if receiver and receiver.fcm_token:
+                # Get sender info to show a friendly name
+                sender_id = message.get("sender_id")
                 sender_name = "New Message"
-                content = message.get("encrypted_content", "You have a new message")
+                if sender_id:
+                    sender_result = await db.execute(select(User).where(User.id == UUID(sender_id)))
+                    sender = sender_result.scalar_one_or_none()
+                    if sender:
+                        sender_name = sender.username
                 
-                # In a real app, you might want to fetch the sender's name from DB too
-                # For now, we'll just send the message content
+                # Determine message type for better notification text
+                msg_type = message.get("message_type", "text")
+                if msg_type == "image":
+                    body = f"📷 {sender_name} sent you an image"
+                elif msg_type == "video":
+                    body = f"🎥 {sender_name} sent you a video"
+                elif msg_type == "voice":
+                    body = f"🎤 {sender_name} sent you a voice message"
+                else:
+                    body = f"💬 {sender_name} sent you a message"
+                
+                logger.info(f"Sending FCM notification to user {user_id} ({receiver.username})")
                 await notification_service.send_push_notification(
-                    token=user.fcm_token,
+                    token=receiver.fcm_token,
                     title=sender_name,
-                    body=content,
-                    data={"sender_id": str(message.get("sender_id", ""))}
+                    body=body,
+                    data={
+                        "type": "chat_message",
+                        "sender_id": str(sender_id) if sender_id else "",
+                        "message_id": str(message.get("id", ""))
+                    }
                 )
+            else:
+                logger.warning(f"Skipping push notification for {user_id}: User not found or has no FCM token.")
         except Exception as e:
-            print(f"Error in _trigger_push_notification: {e}")
+            logger.error(f"Error in _trigger_push_notification: {e}", exc_info=True)
 
     async def listen_redis(self):
         pubsub = self.redis.pubsub()

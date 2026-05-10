@@ -18,9 +18,11 @@ import json
 from app.db.session import engine
 from app.admin import setup_admin
 from uuid import UUID
-from sqlalchemy import update, text
+from sqlalchemy import update, text, select, or_
 from sqlalchemy.sql import func
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
+from app.models.friendship import Friendship
 import logging
 
 logger = logging.getLogger(__name__)
@@ -124,6 +126,44 @@ async def run_cleanup_task():
 async def root():
     return {"message": "Welcome to SecureChat API"}
 
+async def notify_friends_status(user_id: str, is_online: bool, db: AsyncSession):
+    """
+    Finds all friends of a user and sends them a 'user_status' websocket message.
+    """
+    try:
+        # Find all accepted friendships for this user
+        uid = UUID(user_id) if isinstance(user_id, str) else user_id
+        result = await db.execute(
+            select(Friendship).where(
+                (Friendship.status == "accepted") & 
+                ((Friendship.user_id == uid) | (Friendship.friend_id == uid))
+            )
+        )
+        friendships = result.scalars().all()
+        
+        friend_ids = []
+        for f in friendships:
+            if f.user_id == uid:
+                friend_ids.append(str(f.friend_id))
+            else:
+                friend_ids.append(str(f.user_id))
+        
+        if not friend_ids:
+            return
+
+        status_message = {
+            "type": "user_status",
+            "user_id": str(user_id),
+            "is_online": is_online
+        }
+        
+        # Broadcast to each friend
+        for fid in friend_ids:
+            await manager.send_personal_message(status_message, fid)
+            
+    except Exception as e:
+        logger.error(f"Error notifying friends of status change for {user_id}: {e}", exc_info=True)
+
 @app.websocket("/ws/chat/{token}")
 async def websocket_endpoint(websocket: WebSocket, token: str):
     print(f"DEBUG: WebSocket connection attempt received for token: {token[:15]}...")
@@ -148,10 +188,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     await manager.connect(user_id, websocket)
     await presence_manager.set_online(user_id)
     
-    # Update DB status
+    # Update DB status and Notify Friends
     async with SessionLocal() as db:
         await db.execute(update(User).where(User.id == UUID(user_id)).values(is_online=True))
         await db.commit()
+        # Refresh session for the helper
+        await notify_friends_status(user_id, True, db)
     
     try:
         while True:
@@ -188,10 +230,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         async with SessionLocal() as db:
             await db.execute(update(User).where(User.id == UUID(user_id)).values(is_online=False, last_seen=func.now()))
             await db.commit()
+            await notify_friends_status(user_id, False, db)
     except Exception as e:
         print(f"WebSocket Error: {e}")
-        manager.disconnect(user_id)
+        await manager.disconnect(user_id)
         await presence_manager.set_offline(user_id)
         async with SessionLocal() as db:
             await db.execute(update(User).where(User.id == UUID(user_id)).values(is_online=False, last_seen=func.now()))
             await db.commit()
+            await notify_friends_status(user_id, False, db)
