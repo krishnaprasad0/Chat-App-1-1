@@ -18,11 +18,15 @@ class FriendshipCreate(FriendshipBase):
 class FriendshipUpdate(BaseModel):
     status: FriendshipStatus
 
+class FriendshipSettingsUpdate(BaseModel):
+    expiry_hours: int # Options: 1, 24, 168
+
 class FriendshipResponse(BaseModel):
     id: UUID
     user_id: UUID
     friend_id: UUID
     status: FriendshipStatus
+    expiry_hours: int
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)

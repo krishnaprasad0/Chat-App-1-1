@@ -9,6 +9,8 @@ from app.models.user import User
 from app.services.s3_service import s3_service
 import os
 import uuid
+from fastapi.responses import StreamingResponse
+import io
 from typing import List
 from uuid import UUID
 
@@ -62,13 +64,13 @@ async def upload_media(
         # Organize in folders: media/sender_id/receiver_id/filename
         prefix = f"media/{current_user.id}/{receiver_id}"
         
-        # Upload to S3 (encrypted by default in S3Service)
+        # Upload to S3 (Encrypted for privacy)
         url = await s3_service.upload_file(
             file_data=file_content,
             file_name=unique_filename,
             content_type=file.content_type,
             prefix=prefix,
-            encrypt=False
+            encrypt=True
         )
         
         if not url:
@@ -83,3 +85,40 @@ async def upload_media(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.get("/media/view")
+async def view_media(
+    key: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Securely decrypt and stream media from S3.
+    Expects key format: media/sender_id/receiver_id/filename
+    """
+    try:
+        # For security, verify the user is either the sender or receiver
+        # Format: media/{sender_id}/{receiver_id}/{filename}
+        parts = key.split('/')
+        if len(parts) >= 3:
+            sender_id = parts[1]
+            receiver_id = parts[2]
+            if str(current_user.id) not in [sender_id, receiver_id]:
+                raise HTTPException(status_code=403, detail="Access denied to this media")
+
+        file_data = await s3_service.download_file(key, decrypt=True)
+        if not file_data:
+            raise HTTPException(status_code=404, detail="File not found or decryption failed")
+
+        # Detect content type from extension
+        ext = os.path.splitext(key)[1].lower()
+        content_type = "application/octet-stream"
+        if ext in ['.jpg', '.jpeg']: content_type = "image/jpeg"
+        elif ext == '.png': content_type = "image/png"
+        elif ext == '.mp4': content_type = "video/mp4"
+        elif ext in ['.mp3', '.m4a', '.wav']: content_type = "audio/mpeg"
+        elif ext == '.webp': content_type = "image/webp"
+
+        return StreamingResponse(io.BytesIO(file_data), media_type=content_type)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

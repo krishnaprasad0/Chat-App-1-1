@@ -1,6 +1,6 @@
-# 🚀 AWS EC2 Deployment Guide - SecureChat Backend
+# 🚀 AWS EC2 Deployment Guide - Amazon Linux 2023 (AL2023)
 
-This guide covers the full setup and deployment of the FastAPI backend on an Amazon EC2 instance.
+This guide covers the full setup and deployment of the FastAPI backend on an **Amazon Linux 2023** EC2 instance.
 
 ## 1. Recommended EC2 Specifications
 
@@ -10,37 +10,46 @@ This guide covers the full setup and deployment of the FastAPI backend on an Ama
 | **vCPU** | 2 | 2 |
 | **Memory (RAM)** | 2 GB | 4 GB |
 | **Storage** | 20 GB (gp3) | 50 GB (gp3) |
-| **OS** | Ubuntu 24.04 LTS | Ubuntu 24.04 LTS |
-
-> [!TIP]
-> Use a `t3.medium` for production to handle simultaneous WebSocket connections and media processing without lag.
+| **OS** | Amazon Linux 2023 | Amazon Linux 2023 |
 
 ---
 
 ## 2. Security Group Configuration (Inbound Rules)
 
-Ensure your EC2 Security Group allows the following ports:
-
-| Port | Protocol | Source | Purpose |
-| :--- | :--- | :--- | :--- |
-| 22 | TCP | Your IP | SSH Access |
-| 80 | TCP | 0.0.0.0/0 | HTTP (Nginx) |
-| 443 | TCP | 0.0.0.0/0 | HTTPS (SSL) |
-| 8000 | TCP | 0.0.0.0/0 | FastAPI (If not using Nginx) |
+Ensure your EC2 Security Group allows:
+- **22 (SSH)**
+- **80 (HTTP)**
+- **443 (HTTPS)**
+- **8000 (FastAPI)**
 
 ---
 
-## 3. Server Preparation
+## 3. Server Preparation (AL2023 Commands)
 
-Connect to your instance:
-```bash
-ssh -i "your-key.pem" ubuntu@your-ec2-ip
-```
+Connect to your instance and run:
 
-Update and install dependencies:
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3-pip python3-venv nginx redis-server postgresql postgresql-contrib
+# Update system
+sudo dnf update -y
+
+# Install Python, Git, and Development Tools
+sudo dnf install -y python3.11 python3-pip git-all
+
+# Install Redis
+sudo dnf install -y redis6
+sudo systemctl start redis6
+sudo systemctl enable redis6
+
+# Install Nginx
+sudo dnf install -y nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+# Install PostgreSQL (Client and Server)
+sudo dnf install -y postgresql15-server postgresql15
+sudo postgresql-setup --initdb
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 ```
 
 ---
@@ -62,22 +71,14 @@ sudo apt install -y python3-pip python3-venv nginx redis-server postgresql postg
    ```
 
 3. **Configure Environment Variables:**
-   Create a `.env` file:
    ```bash
    nano .env
    ```
-   *Paste your production config (DATABASE_URL, REDIS_URL, AWS keys, Firebase path, etc.)*
-
-4. **Run Database Migrations:**
-   ```bash
-   alembic upgrade head
-   ```
+   *Paste your production config (DATABASE_URL, REDIS_URL, AWS keys, etc.)*
 
 ---
 
 ## 5. Process Management (systemd)
-
-To keep the app running in the background and restart automatically:
 
 Create a service file:
 ```bash
@@ -88,14 +89,14 @@ Paste the following:
 ```ini
 [Unit]
 Description=Gunicorn instance to serve Chat App
-After=network.target
+After=network.target redis6.service postgresql.service
 
 [Service]
-User=ubuntu
-Group=www-data
-WorkingDirectory=/home/ubuntu/chat_app/chat_app_backend
-Environment="PATH=/home/ubuntu/chat_app/chat_app_backend/.venv/bin"
-ExecStart=/home/ubuntu/chat_app/chat_app_backend/.venv/bin/gunicorn \
+User=ec2-user
+Group=nginx
+WorkingDirectory=/home/ec2-user/chat_app/chat_app_backend
+Environment="PATH=/home/ec2-user/chat_app/chat_app_backend/.venv/bin"
+ExecStart=/home/ec2-user/chat_app/chat_app_backend/.venv/bin/gunicorn \
     -w 4 \
     -k uvicorn.workers.UvicornWorker \
     app.main:app \
@@ -114,11 +115,11 @@ sudo systemctl enable chat_app
 
 ---
 
-## 6. Reverse Proxy (Nginx)
+## 6. Nginx Reverse Proxy
 
 Create an Nginx configuration:
 ```bash
-sudo nano /etc/nginx/sites-available/chat_app
+sudo nano /etc/nginx/conf.d/chat_app.conf
 ```
 
 Paste:
@@ -128,37 +129,29 @@ server {
     server_name yourdomain.com;
 
     location / {
-        proxy_pass http://localhost:8000;
+        proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 ```
 
-Link and restart Nginx:
+Restart Nginx:
 ```bash
-sudo ln -s /etc/nginx/sites-available/chat_app /etc/nginx/sites-enabled
 sudo nginx -t
 sudo systemctl restart nginx
 ```
 
 ---
 
-## 7. SSL Setup (HTTPS)
+## 7. SSL with Certbot
 
 ```bash
-sudo apt install certbot python3-certbot-nginx
+sudo dnf install -y python3-certbot-nginx
 sudo certbot --nginx -d yourdomain.com
 ```
-
----
-
-## 8. Final Checklist
-- [ ] Redis is running (`sudo systemctl status redis`)
-- [ ] PostgreSQL is running and user/db created.
-- [ ] `FIREBASE_SERVICE_ACCOUNT_PATH` points to the correct location on the server.
-- [ ] AWS S3 keys are set in `.env`.
-- [ ] Nginx is forwarding WebSocket (`Upgrade` header).

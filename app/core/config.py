@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     AWS_REGION: str = "ap-south-2"
     S3_BUCKET_NAME: str = ""
     
+    # Message Retention
+    MESSAGE_VALIDITY_HOURS: int = 24
+    
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
 settings = Settings()

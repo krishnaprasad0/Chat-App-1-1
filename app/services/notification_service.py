@@ -49,4 +49,45 @@ class NotificationService:
             logger.error(f"Error sending push notification: {e}")
             return None
 
+    async def send_call_notification(
+        self,
+        token: str,
+        caller_name: str,
+        call_id: str,
+        call_type: str,
+        caller_id: str
+    ):
+        if not self.initialized:
+            logger.warning("Attempted to send call notification but Firebase is not initialized.")
+            return None
+
+        try:
+            # High priority message for calling
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title="Incoming Call",
+                    body=f"{caller_name} is calling you ({call_type})",
+                ),
+                data={
+                    "type": "call",
+                    "call_id": str(call_id),
+                    "caller_name": caller_name,
+                    "call_type": call_type,
+                    "caller_id": str(caller_id)
+                },
+                android=messaging.AndroidConfig(
+                    priority='high',
+                ),
+                apns=messaging.APNSConfig(
+                    headers={'apns-priority': '10'},
+                ),
+                token=token,
+            )
+            response = messaging.send(message)
+            logger.info(f"Successfully sent call notification: {response}")
+            return response
+        except Exception as e:
+            logger.error(f"Error sending call notification: {e}")
+            return None
+
 notification_service = NotificationService()

@@ -28,3 +28,4 @@ class Message(Base):
     duration = Column(String, nullable=True) # Duration for voice messages (e.g. "0:15")
     status = Column(String, default=MessageStatus.SENT)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), index=True)

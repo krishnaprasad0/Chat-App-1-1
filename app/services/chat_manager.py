@@ -6,6 +6,7 @@ from app.models.friendship import Friendship, FriendshipStatus
 from sqlalchemy import select, or_, and_
 from uuid import UUID
 import json
+from datetime import datetime, timedelta, timezone
 
 from app.core.encryption import encryptor
 
@@ -26,7 +27,8 @@ class ChatManager:
             )
         )
         friend_result = await db.execute(friend_query)
-        if not friend_result.scalar_one_or_none():
+        friendship = friend_result.scalar_one_or_none()
+        if not friendship:
             # Not friends, don't allow message
             print(f"DEBUG: Blocking message from {sender_id} to {receiver_id} - NOT FRIENDS")
             return None
@@ -35,14 +37,19 @@ class ChatManager:
         original_content = data["encrypted_content"]
         # Encrypt ALL content (text, media URLs, etc.) for maximum privacy
         db_content = encryptor.encrypt(original_content)
-        
+
+        # Get expiry hours from friendship
+        expiry_hours = friendship.expiry_hours if hasattr(friendship, 'expiry_hours') else 24
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=expiry_hours)
+
         db_message = Message(
             sender_id=sender_id,
             receiver_id=receiver_id,
             encrypted_content=db_content,
             message_type=data.get("message_type", "text"),
             media_url=data.get("media_url"),
-            duration=data.get("duration")
+            duration=data.get("duration"),
+            expires_at=expires_at
         )
         db.add(db_message)
         await db.commit()
