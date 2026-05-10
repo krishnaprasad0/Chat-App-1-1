@@ -1,0 +1,87 @@
+2026-05-10 22:28:04,659 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:28:05,159 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:28:05,260 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:29:56,537 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:30:04,717 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:30:05,258 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:30:05,366 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:30:11,023 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:30:11,541 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:30:11,644 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:30:11,665 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.created_at < $1::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 9, 17, 0, 11, 645046, tzinfo=datetime.timezone.utc),)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:30:21,252 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:30:21,747 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:30:21,847 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:30:21,871 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.created_at < $1::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 9, 17, 0, 21, 848045, tzinfo=datetime.timezone.utc),)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:30:27,386 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:30:27,871 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:30:27,972 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:30:27,991 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.created_at < $1::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 9, 17, 0, 27, 972536, tzinfo=datetime.timezone.utc),)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:30:35,543 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:30:36,045 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:30:36,143 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:30:36,156 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.expires_at < $1::TIMESTAMP WITH TIME ZONE OR messages.expires_at IS NULL AND messages.created_at < $2::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 10, 17, 0, 36, 143668, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 5, 9, 17, 0, 36, 143668, tzinfo=datetime.timezone.utc))]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:30:40,112 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:30:40,486 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:30:40,565 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:30:40,581 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.expires_at < $1::TIMESTAMP WITH TIME ZONE OR messages.expires_at IS NULL AND messages.created_at < $2::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 10, 17, 0, 40, 565128, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 5, 9, 17, 0, 40, 565128, tzinfo=datetime.timezone.utc))]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:34:59,393 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:35:00,260 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:35:00,383 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:35:00,425 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.expires_at < $1::TIMESTAMP WITH TIME ZONE OR messages.expires_at IS NULL AND messages.created_at < $2::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 10, 17, 5, 0, 383225, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 5, 9, 17, 5, 0, 383225, tzinfo=datetime.timezone.utc))]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:35:10,088 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:35:10,582 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:35:10,690 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:35:10,711 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.expires_at < $1::TIMESTAMP WITH TIME ZONE OR messages.expires_at IS NULL AND messages.created_at < $2::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 10, 17, 5, 10, 690604, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 5, 9, 17, 5, 10, 690604, tzinfo=datetime.timezone.utc))]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:36:03,303 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:36:03,950 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:36:04,055 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:36:04,075 - app.services.cleanup_service - ERROR - Error during message cleanup: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column messages.expires_at does not exist
+[SQL: SELECT messages.id, messages.sender_id, messages.receiver_id, messages.encrypted_content, messages.message_type, messages.media_url, messages.duration, messages.status, messages.created_at, messages.expires_at 
+FROM messages 
+WHERE messages.expires_at < $1::TIMESTAMP WITH TIME ZONE OR messages.expires_at IS NULL AND messages.created_at < $2::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 5, 10, 17, 6, 4, 56036, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 5, 9, 17, 6, 4, 56036, tzinfo=datetime.timezone.utc))]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-05-10 22:36:19,010 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:36:19,518 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:36:19,668 - app.main - INFO - Database schema auto-update successful
+2026-05-10 22:36:19,671 - app.main - INFO - Message cleanup background task starting...
+2026-05-10 22:37:49,676 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-10 22:37:50,224 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
+2026-05-10 22:37:50,356 - app.main - INFO - Database schema auto-update successful
+2026-05-10 22:37:50,358 - app.main - INFO - Message cleanup background task starting...
