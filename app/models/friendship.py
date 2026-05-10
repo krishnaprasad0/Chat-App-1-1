@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, ForeignKey
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 import enum
@@ -17,5 +17,6 @@ class Friendship(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     friend_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(String, default=FriendshipStatus.PENDING)
+    expiry_hours = Column(Integer, default=24) # Auto-delete timing (1, 24, 168)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

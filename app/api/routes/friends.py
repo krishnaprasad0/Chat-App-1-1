@@ -5,7 +5,7 @@ from app.db.session import get_db
 from app.models.friendship import Friendship, FriendshipStatus
 from app.models.user import User
 from app.schemas.user import UserResponse
-from app.schemas.friendship import FriendshipResponse, FriendshipCreate, FriendListResponse, PendingRequestResponse
+from app.schemas.friendship import FriendshipResponse, FriendshipCreate, FriendListResponse, PendingRequestResponse, FriendshipSettingsUpdate
 from app.schemas.common import APIResponse
 from app.core.dependencies import get_current_user
 from app.services.notification_service import notification_service
@@ -176,3 +176,46 @@ async def get_friends_list(
     friends = result_users.scalars().all()
     
     return APIResponse(status=True, message="Friends list retrieved", data=friends)
+
+@router.patch("/settings/{friend_id}", response_model=APIResponse[FriendshipResponse])
+async def update_chat_settings(
+    friend_id: UUID,
+    settings: FriendshipSettingsUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update the auto-delete timing for a specific chat.
+    Valid options (in hours): 1, 24, 168 (7 days).
+    """
+    if settings.expiry_hours not in [1, 24, 168]:
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid expiry timing. Choose 1 (hour), 24 (hours), or 168 (7 days)."
+        )
+
+    # Find friendship between the two users
+    query = select(Friendship).where(
+        and_(
+            or_(
+                and_(Friendship.user_id == current_user.id, Friendship.friend_id == friend_id),
+                and_(Friendship.user_id == friend_id, Friendship.friend_id == current_user.id)
+            ),
+            Friendship.status == FriendshipStatus.ACCEPTED
+        )
+    )
+    result = await db.execute(query)
+    friendship = result.scalar_one_or_none()
+
+    if not friendship:
+        raise HTTPException(status_code=404, detail="Chat not found or users are not friends")
+
+    friendship.expiry_hours = settings.expiry_hours
+    await db.commit()
+    await db.refresh(friendship)
+
+    return APIResponse(
+        status=True,
+        message=f"Chat auto-delete timing updated to {settings.expiry_hours} hours",
+        data=friendship
+    )

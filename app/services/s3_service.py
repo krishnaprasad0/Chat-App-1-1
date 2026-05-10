@@ -75,4 +75,30 @@ class S3Service:
             logger.error(f"S3 Download Error: {e}")
             return None
 
+    async def delete_file(self, key: str) -> bool:
+        """
+        Deletes a file from S3.
+        """
+        try:
+            # If it's a full URL, extract the key
+            if key.startswith("http"):
+                # URL format: https://{bucket}.s3.{region}.amazonaws.com/{key}
+                # We need everything after the .com/
+                parts = key.split(".amazonaws.com/")
+                if len(parts) > 1:
+                    key = parts[1]
+                else:
+                    logger.error(f"Could not extract S3 key from URL: {key}")
+                    return False
+
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=key)
+            logger.info(f"Successfully deleted file from S3: {key}")
+            return True
+        except ClientError as e:
+            logger.error(f"S3 Delete Error: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected S3 Delete Error: {e}")
+            return False
+
 s3_service = S3Service()
