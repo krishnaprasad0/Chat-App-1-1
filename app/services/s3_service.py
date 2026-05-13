@@ -1,5 +1,11 @@
-import boto3
-from botocore.exceptions import ClientError
+try:
+    import boto3
+    from botocore.exceptions import ClientError
+    BOTO3_AVAILABLE = True
+except ImportError:
+    BOTO3_AVAILABLE = False
+    class ClientError(Exception): pass
+
 from app.core.config import settings
 import logging
 from typing import Optional
@@ -11,14 +17,26 @@ logger = logging.getLogger(__name__)
 
 class S3Service:
     def __init__(self):
-        self.s3_client = boto3.client(
-            's3',
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_REGION
-        )
         self.bucket_name = settings.S3_BUCKET_NAME
         self.fernet = Fernet(settings.ENCRYPTION_KEY.encode())
+        
+        if BOTO3_AVAILABLE and self.bucket_name:
+            try:
+                self.s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name=settings.AWS_REGION
+                )
+            except Exception as e:
+                logger.error(f"Failed to initialize S3 client: {e}")
+                self.s3_client = None
+        else:
+            self.s3_client = None
+            if not BOTO3_AVAILABLE:
+                logger.warning("boto3 is not installed. S3 features will be disabled.")
+            elif not self.bucket_name:
+                logger.info("S3_BUCKET_NAME is not set. S3 features will be disabled.")
 
     async def upload_file(
         self, 

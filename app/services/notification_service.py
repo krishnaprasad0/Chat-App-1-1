@@ -1,5 +1,17 @@
-import firebase_admin
-from firebase_admin import credentials, messaging
+try:
+    import firebase_admin
+    from firebase_admin import credentials, messaging
+    FIREBASE_AVAILABLE = True
+except ImportError:
+    FIREBASE_AVAILABLE = False
+    # Mock classes to avoid name errors in the class definition
+    class messaging:
+        class Message: pass
+        class Notification: pass
+        class AndroidConfig: pass
+        class APNSConfig: pass
+    class credentials: pass
+
 import os
 import logging
 from typing import Optional, List
@@ -9,6 +21,10 @@ logger = logging.getLogger(__name__)
 class NotificationService:
     def __init__(self):
         self.initialized = False
+        if not FIREBASE_AVAILABLE:
+            logger.warning("firebase-admin is not installed. Push notifications will be disabled.")
+            return
+
         try:
             # Look for service account in environment or local file
             cred_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH", "app/credentials/service_account.json")

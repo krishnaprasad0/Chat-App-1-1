@@ -85,3 +85,178 @@ WHERE messages.expires_at < $1::TIMESTAMP WITH TIME ZONE OR messages.expires_at 
 2026-05-10 22:37:50,224 - app.services.notification_service - INFO - Firebase Admin initialized successfully.
 2026-05-10 22:37:50,356 - app.main - INFO - Database schema auto-update successful
 2026-05-10 22:37:50,358 - app.main - INFO - Message cleanup background task starting...
+2026-05-13 11:08:16,447 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:10:13,611 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:11:32,438 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:12:15,064 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:12:36,782 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:12:37,032 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:14:12,821 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:14:13,090 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:14:13,097 - app.services.notification_service - WARNING - firebase-admin is not installed. Push notifications will be disabled.
+2026-05-13 11:14:34,192 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:14:34,430 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:14:34,435 - app.services.notification_service - WARNING - firebase-admin is not installed. Push notifications will be disabled.
+2026-05-13 11:14:34,475 - app.main - WARNING - sqladmin is not installed. Admin interface will be disabled.
+2026-05-13 11:14:34,499 - app.main - WARNING - Database schema auto-update warning: [Errno 1] Operation not permitted
+2026-05-13 11:14:34,501 - app.main - INFO - Message cleanup background task starting...
+2026-05-13 11:14:34,502 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-3' coro=<ConnectionManager.listen_redis() done, defined at /Users/krishnaprasadr/Chat App/Chat-App-1-1/app/websocket/connection_manager.py:97> exception=network:ConnectionError>
+Traceback (most recent call last):
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 2043, in create_connection
+  File "uvloop/loop.pyx", line 2019, in uvloop.loop.Loop.create_connection
+    tr.connect(rai_iter.ai_addr)
+  File "uvloop/handles/tcp.pyx", line 182, in uvloop.loop.TCPTransport.connect
+  File "uvloop/handles/tcp.pyx", line 204, in uvloop.loop._TCPConnectRequest.connect
+    raise exc
+PermissionError: [Errno 1] Operation not permitted
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/app/websocket/connection_manager.py", line 99, in listen_redis
+    await pubsub.psubscribe("user_channel:*")
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/client.py", line 1244, in psubscribe
+    ret_val = await self.execute_command("PSUBSCRIBE", *new_patterns.keys())
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/client.py", line 1069, in execute_command
+    await self.connect()
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/client.py", line 1079, in connect
+    self.connection = await self.connection_pool.get_connection()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 1 connecting to localhost:6379. Operation not permitted.
+2026-05-13 11:14:34,506 - app.services.cleanup_service - ERROR - Error during message cleanup: [Errno 1] Operation not permitted
+2026-05-13 11:15:16,186 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:15:16,437 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:15:16,442 - app.services.notification_service - WARNING - firebase-admin is not installed. Push notifications will be disabled.
+2026-05-13 11:15:16,486 - app.main - WARNING - sqladmin is not installed. Admin interface will be disabled.
+2026-05-13 11:15:16,517 - app.main - WARNING - Database schema auto-update warning: role "postgres" does not exist
+2026-05-13 11:15:16,519 - app.main - INFO - Message cleanup background task starting...
+2026-05-13 11:15:16,532 - app.services.cleanup_service - ERROR - Error during message cleanup: role "postgres" does not exist
+2026-05-13 11:19:51,589 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:19:51,916 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:19:51,922 - app.services.notification_service - WARNING - firebase-admin is not installed. Push notifications will be disabled.
+2026-05-13 11:19:51,964 - app.main - WARNING - sqladmin is not installed. Admin interface will be disabled.
+2026-05-13 11:19:51,995 - app.main - WARNING - Database schema auto-update warning: role "postgres" does not exist
+2026-05-13 11:19:51,996 - app.main - INFO - Message cleanup background task starting...
+2026-05-13 11:19:52,000 - app.services.cleanup_service - ERROR - Error during message cleanup: role "postgres" does not exist
+2026-05-13 11:22:20,171 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:22:20,434 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:22:20,440 - app.services.notification_service - WARNING - firebase-admin is not installed. Push notifications will be disabled.
+2026-05-13 11:22:20,482 - app.main - WARNING - sqladmin is not installed. Admin interface will be disabled.
+2026-05-13 11:22:20,506 - app.main - WARNING - Database schema auto-update warning: role "postgres" does not exist
+2026-05-13 11:22:20,507 - app.main - INFO - Message cleanup background task starting...
+2026-05-13 11:22:20,523 - app.services.cleanup_service - ERROR - Error during message cleanup: role "postgres" does not exist
+2026-05-13 11:22:43,758 - app.main - INFO - HTTP GET / - Status: 200 - Duration: 0.00s
+2026-05-13 11:22:43,858 - app.main - INFO - HTTP GET /favicon.ico - Status: 404 - Duration: 0.00s
+2026-05-13 11:22:48,751 - app.main - INFO - HTTP GET /docs - Status: 200 - Duration: 0.00s
+2026-05-13 11:22:49,711 - app.main - INFO - HTTP GET /openapi.json - Status: 200 - Duration: 0.05s
+2026-05-13 11:24:25,591 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:24:25,883 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:24:25,889 - app.services.notification_service - WARNING - firebase-admin is not installed. Push notifications will be disabled.
+2026-05-13 11:24:25,938 - app.main - WARNING - sqladmin is not installed. Admin interface will be disabled.
+2026-05-13 11:24:25,954 - app.main - WARNING - Database schema auto-update warning: [Errno 1] Operation not permitted
+2026-05-13 11:24:25,955 - app.main - INFO - Message cleanup background task starting...
+2026-05-13 11:24:25,956 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-3' coro=<ConnectionManager.listen_redis() done, defined at /Users/krishnaprasadr/Chat App/Chat-App-1-1/app/websocket/connection_manager.py:97> exception=network:ConnectionError>
+Traceback (most recent call last):
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 2043, in create_connection
+  File "uvloop/loop.pyx", line 2019, in uvloop.loop.Loop.create_connection
+    tr.connect(rai_iter.ai_addr)
+  File "uvloop/handles/tcp.pyx", line 182, in uvloop.loop.TCPTransport.connect
+  File "uvloop/handles/tcp.pyx", line 204, in uvloop.loop._TCPConnectRequest.connect
+    raise exc
+PermissionError: [Errno 1] Operation not permitted
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/app/websocket/connection_manager.py", line 99, in listen_redis
+    await pubsub.psubscribe("user_channel:*")
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/client.py", line 1244, in psubscribe
+    ret_val = await self.execute_command("PSUBSCRIBE", *new_patterns.keys())
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/client.py", line 1069, in execute_command
+    await self.connect()
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/client.py", line 1079, in connect
+    self.connection = await self.connection_pool.get_connection()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/Users/krishnaprasadr/Chat App/Chat-App-1-1/.venv/lib/python3.14/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 1 connecting to localhost:6379. Operation not permitted.
+2026-05-13 11:24:25,960 - app.services.cleanup_service - ERROR - Error during message cleanup: [Errno 1] Operation not permitted
+2026-05-13 11:24:55,720 - root - INFO - Logging initialized. Logs will be saved to logs/app.log and rotated every 7 days.
+2026-05-13 11:24:55,930 - app.services.s3_service - WARNING - boto3 is not installed. S3 features will be disabled.
+2026-05-13 11:24:55,935 - app.services.notification_service - WARNING - firebase-admin is not installed. Push notifications will be disabled.
+2026-05-13 11:24:55,973 - app.main - WARNING - sqladmin is not installed. Admin interface will be disabled.
+2026-05-13 11:24:56,045 - app.main - INFO - Database schema auto-update successful
+2026-05-13 11:24:56,048 - app.main - INFO - Message cleanup background task starting...
+2026-05-13 11:24:56,066 - app.services.cleanup_service - INFO - Starting cleanup for 16 expired messages.
+2026-05-13 11:24:56,066 - app.services.s3_service - ERROR - Unexpected S3 Delete Error: 'NoneType' object has no attribute 'delete_object'
+2026-05-13 11:24:56,066 - app.services.s3_service - ERROR - Unexpected S3 Delete Error: 'NoneType' object has no attribute 'delete_object'
+2026-05-13 11:24:56,066 - app.services.s3_service - ERROR - Unexpected S3 Delete Error: 'NoneType' object has no attribute 'delete_object'
+2026-05-13 11:24:56,073 - app.services.cleanup_service - INFO - Successfully cleaned up 16 messages.
+2026-05-13 11:25:05,180 - app.main - INFO - HTTP POST /auth/login - Status: 401 - Duration: 0.27s
+2026-05-13 11:25:15,332 - app.main - INFO - HTTP POST /auth/login - Status: 200 - Duration: 0.27s

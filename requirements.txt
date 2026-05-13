@@ -14,3 +14,5 @@ python-dotenv
 pytest
 pytest-asyncio
 httpx
+boto3
+firebase-admin
