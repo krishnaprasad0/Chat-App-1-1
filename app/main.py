@@ -16,7 +16,11 @@ from jose import JWTError
 import asyncio
 import json
 from app.db.session import engine
-from app.admin import setup_admin
+try:
+    from app.admin import setup_admin
+    SQLADMIN_AVAILABLE = True
+except ImportError:
+    SQLADMIN_AVAILABLE = False
 from uuid import UUID
 from sqlalchemy import update, text, select, or_
 from sqlalchemy.sql import func
@@ -29,7 +33,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
-setup_admin(app, engine)
+if SQLADMIN_AVAILABLE:
+    setup_admin(app, engine)
+else:
+    logger.warning("sqladmin is not installed. Admin interface will be disabled.")
 
 app.add_middleware(
     CORSMiddleware,
